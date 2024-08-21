@@ -1,6 +1,19 @@
 from pydantic import BaseModel
-import typer
 from pypi_simple import PyPISimple, ProjectPage
+from typing import Optional
+import packaging
+import typer
+import yaml
+
+# warning: hacky
+import re
+def parse_match_spec(spec: str):
+    pattern = r'(?P<name>[a-zA-Z0-9_\-]+)(?P<operator>[<>=!~]{1,2})\s*(?P<version>[0-9\.]+)'
+    match = re.match(pattern, spec.strip())
+    if match:
+        return match.groupdict()
+    else:
+        raise ValueError("Invalid match spec")
 
 app = typer.Typer()
 
@@ -41,12 +54,20 @@ def extract_version_of_project(project_page: ProjectPage, version: str):
       )
   return "0.0.0", Package()
 
+def convert_to_repodata_package(package_name: str, version: str, conda_style_packages: dict = {}):
+  packages_dict = conda_style_packages.copy()
+  project_page = pypi.get_project_page(package_name)
+  full_name, package = extract_version_of_project(project_page, version)
+  packages_dict.update({full_name: package})
+  return packages_dict
+
 
 
 @app.command()
-def create_api(
-    package_name: str = typer.Option(..., help="The name of the package."),
-    version: str = typer.Option(..., help="The version of the package."),
+def create_synthetic_repodata_json(
+    package_name: Optional[str] = typer.Option(None, help="The name of the package."),
+    input_file: str = typer.Option("environment.yml", help="The name of the conda environment.yml file."),
+    version: Optional[str] = typer.Option(None, help="The version of the package."),
     output_file: str = typer.Option("synthetic_repodata.json", help="The output file to save the synthetic repodata.json.")
 ):
     """
@@ -56,11 +77,18 @@ def create_api(
     conda_style_packages = {}
     # Make an API request to PyPI
     try:
-        project_page = pypi.get_project_page(package_name)
-        full_name, package = extract_version_of_project(project_page, version)
-        # print(package)
-        conda_style_packages.update({full_name: package})
-
+      if package_name:
+        conda_style_packages = extract_version_of_project(package_name, version, conda_style_packages)
+      elif input_file:
+        with open(input_file, 'r') as file:
+          data = yaml.safe_load(file)
+          pip_deps = data.get("dependencies")[-1].get("pip") # the pip: key must be last
+        for dep in pip_deps:
+          spec_details = parse_match_spec(dep)
+          package_name = spec_details.get("name")
+          # op
+          version = spec_details.get("version")
+          conda_style_packages = convert_to_repodata_package(package_name, version, conda_style_packages)
 
     except Exception as e:
         typer.echo(f"Error fetching package info: {e}")

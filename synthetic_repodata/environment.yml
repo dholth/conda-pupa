@@ -1,0 +1,9 @@
+name: pupa
+channels:
+- defaults
+dependencies:
+- conda==24.7.1
+- pip==24.2
+- pip:
+  - imagesize==1.4.1
+  - sqlalchemy==2.0.32
