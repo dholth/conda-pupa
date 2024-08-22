@@ -23,10 +23,11 @@ async def get_json():
     return JSONResponse(content=json_data)
 
 from .synth import handle_env_file
-@app.get("/convert-to-synthetic")
+@app.post("/convert-to-synthetic")
 async def convert_to_synthetic(file: UploadFile = File(...)):
+    synthetic_repodata = {}
     content = await file.read()
-    synthetic_repodata = handle_env_file(content)
+    synthetic_repodata = handle_env_file(content, synthetic_repodata)
     return synthetic_repodata
 
 @app.post("/package")

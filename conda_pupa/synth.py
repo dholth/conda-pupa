@@ -20,6 +20,9 @@ def parse_match_spec(spec: str):
     else:
         raise ValueError("Invalid match spec")
 
+# Initialize PyPISimple, kind of global
+pypi = PyPISimple()
+
 
 app = typer.Typer()
 
@@ -84,8 +87,8 @@ def convert_to_repodata_package(
     packages_dict.update({full_name: package})
     return packages_dict
 
-def handle_env_file(env_file):
-    data = yaml.safe_load(file)
+def handle_env_file(env_file, conda_style_packages: dict={}):
+    data = yaml.safe_load(env_file)
     pip_deps = data.get("dependencies")[-1].get(
         "pip"
     )  # the pip: key must be last
@@ -97,6 +100,7 @@ def handle_env_file(env_file):
         conda_style_packages = convert_to_repodata_package(
             package_name, version, conda_style_packages
         )
+    return conda_style_packages
 
 @app.command()
 def create_synthetic_repodata_json(
@@ -123,7 +127,7 @@ def create_synthetic_repodata_json(
             )
         elif input_file:
           with open(input_file, "r") as file:
-            conda_style_packages = handle_env_file(file)
+            conda_style_packages = handle_env_file(file, conda_style_packages)
 
     except Exception as e:
         typer.echo(f"Error fetching package info: {e}")
@@ -145,6 +149,4 @@ def create_synthetic_repodata_json(
 
 
 if __name__ == "__main__":
-    # Initialize PyPISimple, kind of global
-    pypi = PyPISimple()
     app()
