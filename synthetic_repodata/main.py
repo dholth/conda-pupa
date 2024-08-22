@@ -78,7 +78,7 @@ def create_synthetic_repodata_json(
     # Make an API request to PyPI
     try:
       if package_name:
-        conda_style_packages = extract_version_of_project(package_name, version, conda_style_packages)
+        conda_style_packages = convert_to_repodata_package(package_name, version, conda_style_packages)
       elif input_file:
         with open(input_file, 'r') as file:
           data = yaml.safe_load(file)
