@@ -1,7 +1,6 @@
 import re
 from typing import Optional
 
-import packaging
 import typer
 import yaml
 from pydantic import BaseModel
