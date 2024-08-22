@@ -17,5 +17,4 @@ dependencies:
   - pip:
     - pypi-simple==1.6.0
     - sqlalchemy==2.0.32
-    - pkginfo==1.11.1
-    - packaging==24.1
+    - ruff==0.6.2
