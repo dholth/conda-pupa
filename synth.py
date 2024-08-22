@@ -78,10 +78,6 @@ def extract_version_of_project(project_page: ProjectPage, version: str, download
   return "0.0.0", Package(), "https://www.example.com/does_not_exist.whl"
 
 
-def download_whl(whl_url, noarch_dir):
-  req
-  return size, md5
-
 @app.command()
 def create_api(
     output_file: str = typer.Option("synthetic_repodata.json", help="The output file to save the synthetic repodata.json."),
