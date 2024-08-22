@@ -84,6 +84,19 @@ def convert_to_repodata_package(
     packages_dict.update({full_name: package})
     return packages_dict
 
+def handle_env_file(env_file):
+    data = yaml.safe_load(file)
+    pip_deps = data.get("dependencies")[-1].get(
+        "pip"
+    )  # the pip: key must be last
+    for dep in pip_deps:
+        spec_details = parse_match_spec(dep)
+        package_name = spec_details.get("name")
+        # op
+        version = spec_details.get("version")
+        conda_style_packages = convert_to_repodata_package(
+            package_name, version, conda_style_packages
+        )
 
 @app.command()
 def create_synthetic_repodata_json(
@@ -109,19 +122,8 @@ def create_synthetic_repodata_json(
                 package_name, version, conda_style_packages
             )
         elif input_file:
-            with open(input_file, "r") as file:
-                data = yaml.safe_load(file)
-                pip_deps = data.get("dependencies")[-1].get(
-                    "pip"
-                )  # the pip: key must be last
-            for dep in pip_deps:
-                spec_details = parse_match_spec(dep)
-                package_name = spec_details.get("name")
-                # op
-                version = spec_details.get("version")
-                conda_style_packages = convert_to_repodata_package(
-                    package_name, version, conda_style_packages
-                )
+          with open(input_file, "r") as file:
+            conda_style_packages = handle_env_file(file)
 
     except Exception as e:
         typer.echo(f"Error fetching package info: {e}")
