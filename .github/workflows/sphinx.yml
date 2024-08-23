@@ -23,7 +23,9 @@ jobs:
           auto-activate-base: false
       - name: Build Documentation
         run: |
-          pip install flit_core -e .[docs] --no-build-isolation
+          conda activate pupa
+          pip install flit-core
+          pip install -e .[docs] --no-build-isolation
           make html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
