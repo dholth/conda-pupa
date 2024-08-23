@@ -2,6 +2,8 @@ import hashlib
 import os
 import re
 
+import packaging.tags
+import packaging.utils
 import typer
 from packaging.utils import canonicalize_name
 from pydantic import BaseModel
@@ -47,6 +49,18 @@ class RepoData(BaseModel):
     repodata_version: int
 
 
+def compatible_wheel(filename):
+    """
+    Compare filename with supported tags, determine if wheel is compatible.
+
+    An installer would rank the wheels based on the order of sys_tags().
+    """
+    # TODO get sys_tags from target Python interpreter, not interpreter running synth.py
+    name, version, build_tag, tags = packaging.utils.parse_wheel_filename(filename)
+    supported_tags = list(packaging.tags.sys_tags())
+    return not tags.isdisjoint(supported_tags)
+
+
 def extract_version_of_project(
     project_page: ProjectPage, version: str, download: bool, download_dir: str
 ):
@@ -56,10 +70,7 @@ def extract_version_of_project(
     for package in project_page.packages:
         if package.version == version and package.filename.endswith(".whl"):
             # hack to select the compatible wheels (macOS, arm64, Python 3.12)
-            if (
-                "none" not in package.filename
-                and "cp312-cp312-macosx_10_9_universal2.whl" not in package.filename
-            ):
+            if not compatible_wheel(package.filename):
                 continue
             package_metadata = pypi.get_package_metadata(package)
             package_data = FileDistribution(package_metadata)
