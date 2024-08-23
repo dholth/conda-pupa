@@ -30,9 +30,9 @@ class Package(BaseModel):
     build_number: int = 0
     depends: list[str] = []
     extras: dict[str, list[str]] = {}
-    md5: str = ""
+    md5: str | None = None
     name: str = ""
-    sha256: str = ""
+    sha256: str | None = None
     size: int = 0
     subdir: str = ""
     timestamp: int = 0
@@ -89,9 +89,9 @@ def extract_version_of_project(
                 Package(
                     name=canonicalize_name(package.project),
                     version=package.version,
-                    sha256=pkg_sha256,
+                    # sha256=pkg_sha256,
                     size=size,
-                    md5=md5,
+                    # md5=md5,
                     depends=depends,
                     build=build,
                     subdir="noarch",
@@ -118,10 +118,6 @@ def handle_env_file(env_file, conda_style_packages: dict = {}):
 
 @app.command()
 def create_api(
-    output_file: str = typer.Option(
-        "synthetic_repodata.json",
-        help="The output file to save the synthetic repodata.json.",
-    ),
     config_file: str = typer.Option("config.yaml", help="filename of config file"),
     repo_dir: str = typer.Option(
         "synthetic_repo", help="Directory where a conda repo will be created"
@@ -168,8 +164,8 @@ def create_api(
     os.makedirs(noarch_dir, exist_ok=True)
     repodata_file = os.path.join(noarch_dir, "repodata.json")
     with open(repodata_file, "w") as f:
-        f.write(repodata.model_dump_json(indent=2))
-    typer.echo(f"Repodata saved to {output_file}")
+        f.write(repodata.model_dump_json(indent=2, exclude_unset=True))
+    typer.echo(f"Repodata saved to {repodata_file}")
 
 
 if __name__ == "__main__":
