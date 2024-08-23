@@ -113,20 +113,6 @@ def extract_version_of_project(
     return "0.0.0", Package(), "https://www.example.com/does_not_exist.whl"
 
 
-def handle_env_file(env_file, conda_style_packages: dict = {}):
-    data = safe_load(env_file)
-    pip_deps = data.get("dependencies")[-1].get("pip")  # the pip: key must be last
-    for dep in pip_deps:
-        spec_details = parse_match_spec(dep)
-        package_name = spec_details.get("name")
-        # op
-        version = spec_details.get("version")
-        conda_style_packages = convert_to_repodata_package(
-            package_name, version, conda_style_packages
-        )
-    return conda_style_packages
-
-
 @app.command()
 def create_api(
     config_file: str = typer.Option("config.yaml", help="filename of config file"),

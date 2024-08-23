@@ -5,7 +5,6 @@ dependencies:
   - conda==24.7.1
   - conda-index==0.5.0
   - conda-package-streaming # remove vendored conda_pupa/create.py when 0.10.0 is released
-  - fastapi==0.103.0
   - flit==3.9.0
   - packaging >=24
   - pip==24.2
