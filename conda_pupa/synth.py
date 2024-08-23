@@ -3,10 +3,11 @@ import os
 import re
 
 import typer
+from packaging.utils import canonicalize_name
 from pydantic import BaseModel
 from pypi_simple import ProjectPage, PyPISimple
 from ruamel.yaml import safe_load
-from packaging.utils import canonicalize_name
+
 from conda_pupa.translate import FileDistribution, requires_to_conda
 
 app = typer.Typer()

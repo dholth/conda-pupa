@@ -6,6 +6,8 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
+from .synth import handle_env_file
+
 app = FastAPI()
 
 
@@ -25,9 +27,6 @@ with open(json_file_path) as f:
 @app.get("/synthetic_repodata")
 async def get_json():
     return JSONResponse(content=json_data)
-
-
-from .synth import handle_env_file
 
 
 @app.post("/convert-to-synthetic")
