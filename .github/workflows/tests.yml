@@ -42,7 +42,7 @@ jobs:
 
           ${{ runner.temp }}/conda-standalone/conda.exe env update \
           --prefix ${{ runner.temp }}/conda-standalone/env \
-          --yes --file environment.yml
+          --file environment.yml
           python=${{ matrix.python-version }}
     - name: Conda Info
       env:
