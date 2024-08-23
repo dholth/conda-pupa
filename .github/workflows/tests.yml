@@ -24,7 +24,7 @@ jobs:
         path: |
           ${{ runner.temp }}/conda-standalone
           !${{ runner.temp }}/conda-standalone/pkgs/*.conda
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tests/requirements*.txt') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('environment.yml') }}
     - uses: dholth/action-conda-standalone/setup-conda-standalone@main
     - name: Conda Install
       env:
