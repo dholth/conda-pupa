@@ -1,7 +1,11 @@
+import os
+import hashlib
+
 from pydantic import BaseModel
 import typer
 from pypi_simple import PyPISimple, ProjectPage
 from conda_pupa.translate import requires_to_conda, FileDistribution
+from yaml import safe_load
 
 app = typer.Typer()
 
@@ -27,12 +31,16 @@ class RepoData(BaseModel):
 
 
 
-def extract_version_of_project(project_page: ProjectPage, version: str):
+def extract_version_of_project(project_page: ProjectPage, version: str, download: bool, download_dir: str):
   """
   Extract the version and details of the project from the project page.
   """
   for package in project_page.packages:
-    if package.version == version:
+    if package.version == version and package.filename.endswith(".whl"):
+
+      # hack to select the compatible wheels (macOS, arm64, Python 3.12)
+      if 'none' not in package.filename and 'cp312-cp312-macosx_10_9_universal2.whl' not in package.filename:
+         continue
       package_metadata = pypi.get_package_metadata(package)
       package_data = FileDistribution(package_metadata)
 
@@ -46,34 +54,56 @@ def extract_version_of_project(project_page: ProjectPage, version: str):
 
       # provenance = pypi.get_provenance(package)
       pkg_sha256 = package.digests.get("sha256")
+      build = package.filename.split("-", 2)[-1].removesuffix(".whl")
+      size = 0
+      md5 = 0
+      if download:
+        pkg_path = os.path.join(download_dir, package.filename)
+        pypi.download_package(package, path=pkg_path)
+        size = os.path.getsize(pkg_path)
+        with open(pkg_path, "rb") as f:
+          md5 = hashlib.md5(f.read()).hexdigest()
+
       return package.filename, Package(
-        name=package.project,
+        name=package.project.lower().replace("_", "-"),
         version=package.version,
         sha256=pkg_sha256,
+        size=size,
+        md5=md5,
         depends=depends,
+        build=build,
+        subdir="noarch",
         extras=extras
-      )
-  return "0.0.0", Package()
-
+      ), package.url,
+  return "0.0.0", Package(), "https://www.example.com/does_not_exist.whl"
 
 
 @app.command()
 def create_api(
-    package_name: str = typer.Option(..., help="The name of the package."),
-    version: str = typer.Option(..., help="The version of the package."),
-    output_file: str = typer.Option("synthetic_repodata.json", help="The output file to save the synthetic repodata.json.")
+    output_file: str = typer.Option("synthetic_repodata.json", help="The output file to save the synthetic repodata.json."),
+    config_file: str = typer.Option("config.yaml", help="filename of config file"),
+    repo_dir: str = typer.Option("synthetic_repo", help="Directory where a conda repo will be created"),
+    populate: bool = typer.Option(False, help="Populate the repo with wheels"),
 ):
     """
     Create a repodata.json file based on the list of projects provided.
     """
 
+    with open(config_file, "rb") as fh:
+      requested_packages = safe_load(fh)
+
+    noarch_dir = os.path.join(repo_dir, "noarch")
+    os.makedirs(noarch_dir, exist_ok=True)
+
     conda_style_packages = {}
     # Make an API request to PyPI
     try:
+      for package_name, versions in requested_packages.items():
         project_page = pypi.get_project_page(package_name)
-        full_name, package = extract_version_of_project(project_page, version)
-        # print(package)
-        conda_style_packages.update({full_name: package})
+        for version in  versions:
+          full_name, package, whl_url = extract_version_of_project(project_page, version, populate, noarch_dir)
+          # print(package)
+          conda_style_packages.update({full_name: package})
 
 
     except Exception as e:
@@ -82,7 +112,7 @@ def create_api(
 
     # Create API definition
     repodata = RepoData(
-        info={"subdir": "osx-arm64"}, # default for now
+        info={"subdir": "noarch"}, # default for now
         packages=conda_style_packages,
         # "packages.conda": [package_name],
         # "pypi_info": package_info,
@@ -90,7 +120,10 @@ def create_api(
     )
 
     # Save to output file
-    with open(output_file, "w") as f:
+    noarch_dir = os.path.join(repo_dir, "noarch")
+    os.makedirs(noarch_dir, exist_ok=True)
+    repodata_file = os.path.join(noarch_dir, "repodata.json")
+    with open(repodata_file, "w") as f:
         f.write(repodata.model_dump_json(indent=2))
     typer.echo(f"Repodata saved to {output_file}")
 
