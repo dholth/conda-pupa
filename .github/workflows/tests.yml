@@ -40,7 +40,7 @@ jobs:
             --yes \
             --prefix ${{ runner.temp }}/conda-standalone/env
 
-          ${{ runner.temp }}/conda-standalone/conda.exe install \
+          ${{ runner.temp }}/conda-standalone/conda.exe env update \
           --prefix ${{ runner.temp }}/conda-standalone/env \
           --yes --file environment.yml
           python=${{ matrix.python-version }}
