@@ -34,7 +34,6 @@ jobs:
       # these / are sent to the shell
       # (conda create will delete old environment if present)
       run: |
-          python -m pip list
           [[ -x ${{ runner.temp }}/conda-standalone/env ]] || \
             ${{ runner.temp }}/conda-standalone/conda.exe create \
             --yes \
@@ -45,6 +44,7 @@ jobs:
           --file environment.yml
           python=${{ matrix.python-version }}
     - name: Conda Info
+      if: false
       env:
         CONDA_PKGS_DIRS: ${{ runner.temp }}/conda-standalone/pkgs
       run: |
