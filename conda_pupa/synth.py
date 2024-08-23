@@ -164,7 +164,7 @@ def create_api(
     os.makedirs(noarch_dir, exist_ok=True)
     repodata_file = os.path.join(noarch_dir, "repodata.json")
     with open(repodata_file, "w") as f:
-        f.write(repodata.model_dump_json(indent=2, exclude_unset=True))
+        f.write(repodata.model_dump_json(indent=2, exclude_none=True))
     typer.echo(f"Repodata saved to {repodata_file}")
 
 
