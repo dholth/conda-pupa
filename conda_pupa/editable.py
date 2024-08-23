@@ -38,7 +38,9 @@ def flatten(iterable):
 
 def ensure_requirements(requirements):
     if requirements:
-        main_subshell("install", *requires_to_conda(requirements))
+        conda_requirements, _ = requires_to_conda(requirements)
+        # -y may be appropriate during tests only
+        main_subshell("install", "-y", *conda_requirements)
 
 
 def build_pypa(path: Path, output_path, python_executable, distribution="editable"):
