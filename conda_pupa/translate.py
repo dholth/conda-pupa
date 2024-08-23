@@ -153,6 +153,7 @@ grayskull_pypi_mapping = json.loads(
 
 def requires_to_conda(requires: list[str] | None):
     from collections import defaultdict
+
     extras: dict[str, list[str]] = defaultdict(list)
     requirements = []
     for requirement in [Requirement(dep) for dep in requires or []]:
@@ -176,11 +177,11 @@ def requires_to_conda(requires: list[str] | None):
 
     return requirements, extras
 
-        # if there is a url or extras= here we have extra work, may need to
-        # yield Requirement not str
-        # sorted(packaging.requirements.SpecifierSet("<5,>3")._specs, key=lambda x: x.version)
-        # or just sorted lexicographically in str(SpecifierSet)
-        # yield f"{requirement.name} {requirement.specifier}"
+    # if there is a url or extras= here we have extra work, may need to
+    # yield Requirement not str
+    # sorted(packaging.requirements.SpecifierSet("<5,>3")._specs, key=lambda x: x.version)
+    # or just sorted lexicographically in str(SpecifierSet)
+    # yield f"{requirement.name} {requirement.specifier}"
 
 
 def pypi_to_conda_name(name):
