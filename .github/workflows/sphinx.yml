@@ -17,13 +17,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
         with:
-          activate-environment: pupa
           environment-file: environment.yml
           python-version: 3.12
-          auto-activate-base: false
       - name: Build Documentation
         run: |
-          conda activate pupa
           pip install flit-core
           pip install -e .[docs] --no-build-isolation
           make html
