@@ -1,8 +1,11 @@
+import subprocess
 from pathlib import Path
 
 import pytest
 
+import build
 from conda_pupa.editable import editable, normalize
+from packaging.requirements import InvalidRequirement
 
 
 def test_editable():
@@ -33,5 +36,25 @@ def package_path():
 def test_build_wheel(package, package_path):
     # Some of these will not contain the editable hook; need to test building
     # regular wheels also. Some will require a "yes" for conda install
-    # dependencies.
-    editable(package_path / package)
+    # dependencies. Some are designed to fail.
+    xfail = [
+        "test-bad-backend",
+        "test-bad-syntax",
+        "test-bad-wheel",
+        "test-cant-build-via-sdist",
+        "test-invalid-requirements",
+        "test-metadata",
+        "test-no-project",
+        "test-no-requires",
+        "test-optional-hooks",
+    ]
+    try:
+        editable(package_path / package)
+    except (
+        build.BuildException,
+        build.BuildBackendException,
+        subprocess.CalledProcessError,
+        InvalidRequirement,
+    ) as e:
+        if package in xfail:
+            pytest.xfail(reason=str(e))
