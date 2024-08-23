@@ -106,7 +106,7 @@ def build_conda(whl, output_path: Path, python_executable):
     return output_path / f"{file_id}.conda"
 
 
-def editable(project, distribution="wheel"):
+def editable(project, distribution="editable"):
     with tempfile.TemporaryDirectory(prefix="conda", delete=False) as output_path:
         output_path = Path(output_path)
         normal_wheel = build_pypa(

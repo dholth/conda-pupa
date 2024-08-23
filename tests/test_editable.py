@@ -48,8 +48,10 @@ def test_build_wheel(package, package_path):
         "test-no-requires",
         "test-optional-hooks",
     ]
+    if package == "test-flit":
+        pytest.skip(reason="Required version of flit was not packaged for Python 3.12 in our channel")
     try:
-        editable(package_path / package)
+        editable(package_path / package, distribution="wheel")
     except (
         build.BuildException,
         build.BuildBackendException,
