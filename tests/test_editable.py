@@ -2,10 +2,10 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from packaging.requirements import InvalidRequirement
 
 import build
 from conda_pupa.editable import editable, normalize
-from packaging.requirements import InvalidRequirement
 
 
 def test_editable():
@@ -49,7 +49,9 @@ def test_build_wheel(package, package_path):
         "test-optional-hooks",
     ]
     if package == "test-flit":
-        pytest.skip(reason="Required version of flit was not packaged for Python 3.12 in our channel")
+        pytest.skip(
+            reason="Required version of flit was not packaged for Python 3.12 in our channel"
+        )
     try:
         editable(package_path / package, distribution="wheel")
     except (

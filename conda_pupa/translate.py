@@ -92,7 +92,6 @@ class CondaMetadata:
         if python_version:
             requires_python = f"python { python_version }"
 
-        # requirements = [*requires_to_conda(distribution.requires)]
         requirements, extras = requires_to_conda(distribution.requires)
 
         # conda does support ~=3.0.0 "compatibility release" matches
