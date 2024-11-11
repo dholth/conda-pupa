@@ -3,8 +3,12 @@ Build a Python project into an editable wheel, convert to a .conda and install
 the .conda.
 """
 
+import base64
+import csv
+import hashlib
 import itertools
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -68,13 +72,12 @@ def build_pypa(path: Path, output_path, python_executable, distribution="editabl
 
 def build_conda(
     whl,
+    build_path: Path,
     output_path: Path,
     python_executable,
     project_path: Path | None = None,
     is_editable=False,
 ):
-    # doesn't work well as both the build path and the temporary-install-to-convert path
-    build_path = output_path / "build"
     if not build_path.exists():
         build_path.mkdir()
 
@@ -93,7 +96,8 @@ def build_conda(
     subprocess.run(command, check=True)
     print("Installed to", build_path)
 
-    dist_info = next((build_path / "site-packages").glob("*.dist-info"))
+    site_packages = build_path / "site-packages"
+    dist_info = next(site_packages.glob("*.dist-info"))
     metadata = CondaMetadata.from_distribution(PathDistribution(dist_info))
     record = metadata.package_record.to_index_json()
     # XXX set build string as hash of pypa metadata so that conda can re-install
@@ -104,17 +108,21 @@ def build_conda(
     (build_path / "info").mkdir()
     (build_path / "info" / "index.json").write_text(json_dumps(record))
 
-    paths = build.paths_json(build_path)
-
-    (build_path / "info" / "paths.json").write_text(json_dumps(paths))
-
     # Allow pip to list us as editable
     if project_path:
         direct_url = project_path.absolute().as_uri()
-        (dist_info / "direct_url.json").write_text(
+        direct_url_path = dist_info / "direct_url.json"
+        direct_url_path.write_text(
             json.dumps({"dir_info": {"editable": is_editable}, "url": direct_url})
         )
-    # pip wants us to rewrite RECORD to include the new size, hash for direct_url.json
+        record_path = dist_info / "RECORD"
+        # Rewrite RECORD for any changed files
+        update_RECORD(record_path, site_packages, direct_url_path)
+
+    # Write conda's paths after all other changes
+    paths = build.paths_json(build_path)
+
+    (build_path / "info" / "paths.json").write_text(json_dumps(paths))
 
     with conda_builder(file_id, output_path) as tar:
         tar.add(build_path, "", filter=build.filter)
@@ -122,18 +130,46 @@ def build_conda(
     return output_path / f"{file_id}.conda"
 
 
+def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
+    """
+    Rewrite RECORD with new size, checksum for updated_file.
+    """
+    record_text = record_path.read_text()
+    record_rows = list(csv.reader(record_text.splitlines()))
+
+    relpath = str(changed_path.relative_to(base_path)).replace(os.sep, "/")
+    for row in record_rows:
+        if row[0] == relpath:
+            data = changed_path.read_bytes()
+            size = len(data)
+            checksum = (
+                base64.urlsafe_b64encode(hashlib.sha256(data).digest())
+                .rstrip(b"=")
+                .decode("utf-8")
+            )
+            row[1] = f"sha256={checksum}"
+            row[2] = str(size)
+
+    with record_path.open(mode="w", newline="", encoding="utf-8") as record_file:
+        writer = csv.writer(record_file)
+        writer.writerows(record_rows)
+
+
 def editable(project, distribution="editable"):
     project = Path(project)
-    with tempfile.TemporaryDirectory(prefix="conda", delete=False) as output_path:
+    with tempfile.TemporaryDirectory(prefix="conda", delete=False) as tmp_path:
+        tmp_path = Path(tmp_path)
         output_path = Path(project / "build")
         if not output_path.exists():
             output_path.mkdir()
         normal_wheel = build_pypa(
-            Path(project), output_path, sys.executable, distribution=distribution
+            Path(project), tmp_path, sys.executable, distribution=distribution
         )
+        build_path = tmp_path / "build"
         package_conda = build_conda(
             normal_wheel,
-            output_path,
+            build_path,
+            tmp_path,
             sys.executable,
             project_path=project,
             is_editable=True,
