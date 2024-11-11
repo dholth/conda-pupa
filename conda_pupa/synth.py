@@ -1,3 +1,7 @@
+"""
+Generate repodata.json converted from wheel metadata.
+"""
+
 import hashlib
 import os
 

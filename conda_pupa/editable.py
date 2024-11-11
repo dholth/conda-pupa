@@ -66,9 +66,17 @@ def build_pypa(path: Path, output_path, python_executable, distribution="editabl
     return editable_file
 
 
-def build_conda(whl, output_path: Path, python_executable):
+def build_conda(
+    whl,
+    output_path: Path,
+    python_executable,
+    project_path: Path | None = None,
+    is_editable=False,
+):
+    # doesn't work well as both the build path and the temporary-install-to-convert path
     build_path = output_path / "build"
-    build_path.mkdir()
+    if not build_path.exists():
+        build_path.mkdir()
 
     # could we find the local channel for conda-build, drop our new package
     # there and have it automatically be found
@@ -100,6 +108,14 @@ def build_conda(whl, output_path: Path, python_executable):
 
     (build_path / "info" / "paths.json").write_text(json_dumps(paths))
 
+    # Allow pip to list us as editable
+    if project_path:
+        direct_url = project_path.absolute().as_uri()
+        (dist_info / "direct_url.json").write_text(
+            json.dumps({"dir_info": {"editable": is_editable}, "url": direct_url})
+        )
+    # pip wants us to rewrite RECORD to include the new size, hash for direct_url.json
+
     with conda_builder(file_id, output_path) as tar:
         tar.add(build_path, "", filter=build.filter)
 
@@ -107,12 +123,21 @@ def build_conda(whl, output_path: Path, python_executable):
 
 
 def editable(project, distribution="editable"):
+    project = Path(project)
     with tempfile.TemporaryDirectory(prefix="conda", delete=False) as output_path:
-        output_path = Path(output_path)
+        output_path = Path(project / "build")
+        if not output_path.exists():
+            output_path.mkdir()
         normal_wheel = build_pypa(
             Path(project), output_path, sys.executable, distribution=distribution
         )
-        package_conda = build_conda(normal_wheel, output_path, sys.executable)
+        package_conda = build_conda(
+            normal_wheel,
+            output_path,
+            sys.executable,
+            project_path=project,
+            is_editable=True,
+        )
         print("Conda at", package_conda)
 
 
