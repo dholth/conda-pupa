@@ -16,17 +16,12 @@ from importlib.metadata import PathDistribution
 from pathlib import Path
 
 from conda.cli.main import main_subshell
-from packaging.utils import canonicalize_name
 
 from build import ProjectBuilder, check_dependency
 
 from . import build
 from conda_package_streaming.create import conda_builder
 from .translate import CondaMetadata, requires_to_conda
-
-
-def normalize(name):
-    return canonicalize_name(name)
 
 
 def json_dumps(object):

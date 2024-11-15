@@ -188,12 +188,17 @@ def conda_to_requires(matchspec: MatchSpec):
     name = matchspec.name
     if isinstance(name, str):
         pypi_name = conda_to_pypi_name(name)
-        # XXX ugly no-setter-on-MatchSpec.name
+        # XXX ugly 'omits = for exact version'
         # .spec omits package[version='>=1.0'] bracket format when possible
-        return Requirement(str(matchspec.spec).replace(name, pypi_name))
+        best_format = str(matchspec)
+        if "version=" in best_format:
+            best_format = matchspec.spec
+        # XXX ugly no-setter-on-MatchSpec.name
+        return Requirement(best_format.replace(name, pypi_name))
 
 
 def pypi_to_conda_name(pypi_name: str):
+    pypi_name = canonicalize_name(pypi_name)
     return grayskull_pypi_mapping.get(
         pypi_name,
         {
