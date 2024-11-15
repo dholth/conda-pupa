@@ -10,6 +10,7 @@ import sys
 import time
 from importlib.metadata import Distribution, PackageMetadata, PathDistribution
 from pathlib import Path
+from conda.models.match_spec import MatchSpec
 from typing import Any
 
 from packaging.requirements import Requirement
@@ -183,16 +184,33 @@ def requires_to_conda(requires: list[str] | None):
     # yield f"{requirement.name} {requirement.specifier}"
 
 
-def pypi_to_conda_name(name):
+def conda_to_requires(matchspec: MatchSpec):
+    name = matchspec.name
+    if isinstance(name, str):
+        pypi_name = conda_to_pypi_name(name)
+        # XXX ugly no-setter-on-MatchSpec.name
+        # .spec omits package[version='>=1.0'] bracket format when possible
+        return Requirement(str(matchspec.spec).replace(name, pypi_name))
+
+
+def pypi_to_conda_name(pypi_name: str):
     return grayskull_pypi_mapping.get(
-        name,
+        pypi_name,
         {
-            "pypi_name": name,
-            "conda_name": name,
+            "pypi_name": pypi_name,
+            "conda_name": pypi_name,
             "import_name": None,
             "mapping_source": None,
         },
     )["conda_name"]
+
+
+def conda_to_pypi_name(conda_name: str):
+    # XXX build reverse map
+    for value in grayskull_pypi_mapping.values():
+        if conda_name == value["conda_name"]:
+            return value["pypi_name"]
+    return conda_name
 
 
 if __name__ == "__main__":  # pragma: no cover
