@@ -31,8 +31,6 @@ def install_installer(python_executable, whl, build_path):
 
 
 def install_pip(python_executable, whl, build_path):
-    # could we find the local channel for conda-build, drop our new package
-    # there and have it automatically be found
     command = [
         python_executable,
         "-m",

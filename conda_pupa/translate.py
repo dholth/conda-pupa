@@ -84,6 +84,18 @@ class CondaMetadata:
     package_record: PackageRecord
     about: dict[str, Any]
 
+    def link_json(self) -> dict | None:
+        """
+        info/link.json used for console scripts; None if empty.
+
+        Note the METADATA file aka PackageRecord does not list console scripts.
+        """
+        # XXX gui scripts?
+        return {
+            "noarch": {"entry_points": self.console_scripts, "type": "python"},
+            "package_metadata_version": 1,
+        }
+
     @classmethod
     def from_distribution(cls, distribution: Distribution):
         metadata = distribution.metadata
