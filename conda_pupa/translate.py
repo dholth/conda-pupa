@@ -51,7 +51,7 @@ class PackageRecord:
     depends: list[str]
     extras: dict[str, list[str]]
     build_number: int = 0
-    build: str = "0"
+    build_text: str = "pupa"    # e.g. hash
     license_family: str = ""
     license: str = ""
     noarch: str = ""
@@ -71,6 +71,10 @@ class PackageRecord:
             "timestamp": self.timestamp,
             "version": self.version,
         }
+
+    @property
+    def build(self):
+        return f"{self.build_text}_{self.build_number}"
 
     @property
     def stem(self):
@@ -129,7 +133,6 @@ class CondaMetadata:
         version = distribution.version
 
         package_record = PackageRecord(
-            build="0",
             build_number=0,
             depends=depends,
             extras=extras,
