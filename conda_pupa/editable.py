@@ -91,7 +91,7 @@ def build_conda(
     (build_path / "info" / "index.json").write_text(json_dumps(record))
 
     if link_json := metadata.link_json():
-        (build_path/"info"/"link_json").write_text(json_dumps(link_json))
+        (build_path/"info"/"link.json").write_text(json_dumps(link_json))
 
     # Allow pip to list us as editable
     if project_path:
