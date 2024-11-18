@@ -9,7 +9,6 @@ import hashlib
 import itertools
 import json
 import os
-import subprocess
 import sys
 import tempfile
 from importlib.metadata import PathDistribution
@@ -20,6 +19,7 @@ from conda.cli.main import main_subshell
 from build import ProjectBuilder, check_dependency
 
 from . import build
+from . import installer
 from conda_package_streaming.create import conda_builder
 from .translate import CondaMetadata, requires_to_conda
 
@@ -76,20 +76,7 @@ def build_conda(
     if not build_path.exists():
         build_path.mkdir()
 
-    # could we find the local channel for conda-build, drop our new package
-    # there and have it automatically be found
-    command = [
-        python_executable,
-        "-m",
-        "pip",
-        "install",
-        "--no-deps",
-        "--target",
-        str(build_path / "site-packages"),
-        whl,
-    ]
-    subprocess.run(command, check=True)
-    print("Installed to", build_path)
+    installer.install_pip(python_executable, whl, build_path)
 
     site_packages = build_path / "site-packages"
     dist_info = next(site_packages.glob("*.dist-info"))
