@@ -49,7 +49,7 @@ def test_multiple(tmp_path):
     WHEEL_DIR = tmp_path / "wheels"
     WHEEL_DIR.mkdir(exist_ok=True)
 
-    assert REPO.exists()
+    REPO.mkdir(parents=True, exist_ok=True)
 
     # ensure index even if it starts empty
     update_index(REPO)
