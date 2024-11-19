@@ -35,6 +35,20 @@
    :show-inheritance:
 ```
 
+```{eval-rst}
+.. automodule:: conda_pupa.installer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
+```{eval-rst}
+.. automodule:: conda_pupa.synth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
+
 ```{toctree}
 :maxdepth: 4
 ```
