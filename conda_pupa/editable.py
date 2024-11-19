@@ -42,7 +42,9 @@ def ensure_requirements(requirements):
         main_subshell("install", "-y", *conda_requirements)
 
 
-def build_pypa(path: Path, output_path, python_executable, distribution="editable"):
+def build_pypa(
+    path: Path, output_path, python_executable: str, distribution="editable"
+):
     """
     Args:
         distribution: "editable" or "wheel"
@@ -141,7 +143,7 @@ def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
         writer.writerows(record_rows)
 
 
-def editable(project, distribution="editable"):
+def pypa_to_conda(project, distribution="editable"):
     project = Path(project)
     with tempfile.TemporaryDirectory(prefix="conda", delete=False) as tmp_path:
         tmp_path = Path(tmp_path)
@@ -161,6 +163,11 @@ def editable(project, distribution="editable"):
             is_editable=True,
         )
         print("Conda at", package_conda)
+
+
+# Older name, distribution doesn't have to be 'editable'
+def editable(project: Path | str, distribution="editable"):
+    return pypa_to_conda(project, distribution=distribution)
 
 
 # XXX Could we set CONDA_PKGS_DIRS=(temporary directory), (standard locations)
