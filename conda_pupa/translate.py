@@ -51,7 +51,7 @@ class PackageRecord:
     depends: list[str]
     extras: dict[str, list[str]]
     build_number: int = 0
-    build_text: str = "pupa"    # e.g. hash
+    build_text: str = "pupa"  # e.g. hash
     license_family: str = ""
     license: str = ""
     noarch: str = ""
