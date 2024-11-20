@@ -55,7 +55,7 @@ def test_multiple(tmp_path):
     envs = list_envs()
     if not any((e.endswith(f"{os.sep}{TARGET_ENV}") for e in envs["envs"])):
         subprocess.run(
-            f"{os.environ['CONDA_EXE']} create -n {TARGET_ENV} -y python".split(),
+            [os.environ["CONDA_EXE"], "create", "-n", "TARGET_ENV", "-y", "python"],
             check=True,
             encoding="utf-8",
         )
@@ -67,9 +67,19 @@ def test_multiple(tmp_path):
     missing_packages = set()
     while len(fetched_packages) < MAX_TRIES:
         try:
-            command = f"{os.environ['CONDA_EXE']} install -n {TARGET_ENV} {TARGET_DEP} --json --override-channels -c {REPO}"
+            command = [
+                {os.environ["CONDA_EXE"]},
+                "install",
+                "-n",
+                TARGET_ENV,
+                TARGET_DEP,
+                "--json",
+                "--override-channels",
+                "-c",
+                REPO,
+            ]
             subprocess.run(
-                command.split(),
+                command,
                 check=True,
                 capture_output=True,
                 encoding="utf-8",
@@ -137,7 +147,7 @@ def test_multiple(tmp_path):
 
     pprint.pprint(fetched_packages)
 
-    subprocess.run(f"{os.environ['CONDA_EXE']} list -n {TARGET_ENV}".split())
+    subprocess.run([os.environ["CONDA_EXE"], "list", "-n", TARGET_ENV])
 
 
 NOTHING_PROVIDES_RE = re.compile(r"nothing provides (.*) needed by")
