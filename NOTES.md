@@ -18,3 +18,20 @@ In the twine example we wind up converting two versions of a package from wheel
 to conda. One of them might have conflicted with the discovered solution.
 
 Hash of a regular Python package is something like py312hca03da5_0
+
+## Environment markers
+
+Grab parameters from target Python; evaluate marker.
+
+`build`, which we use for tests uses environment markers, and extras.
+
+corpus of metadata from pypi can be used to test marker evaluation.
+
+## "arch" packages
+
+Should be allowed.
+
+## a little bit like conda-build
+
+Build packages from wheels or sdists or checkouts, then keep them in the local
+channel for later. (But what if we are in CI?)

@@ -12,8 +12,8 @@ import sys
 
 from conda.models.match_spec import MatchSpec
 
+from conda_pupa.build import build_conda
 from conda_pupa.downloader import download_pypi_pip
-from conda_pupa.editable import build_conda
 from conda_pupa.index import update_index
 
 TARGET_ENV = "pupa-target"
@@ -68,7 +68,7 @@ def test_multiple(tmp_path):
     while len(fetched_packages) < MAX_TRIES:
         try:
             command = [
-                {os.environ["CONDA_EXE"]},
+                os.environ["CONDA_EXE"],
                 "install",
                 "-n",
                 TARGET_ENV,

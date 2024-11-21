@@ -22,3 +22,9 @@ dependencies:
     - pypi-simple==1.6.0
     - sqlalchemy==2.0.32
     - ruff==0.6.2
+
+# a warning: unknown section will appear
+unknown-key:
+  - foo
+  - bar
+  - baz
