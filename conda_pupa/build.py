@@ -177,6 +177,7 @@ def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
     """
     Rewrite RECORD with new size, checksum for updated_file.
     """
+    # note `installer` also has code to handle RECORD
     record_text = record_path.read_text()
     record_rows = list(csv.reader(record_text.splitlines()))
 
