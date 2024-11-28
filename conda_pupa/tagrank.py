@@ -3,13 +3,17 @@ Compatible tags versus a wheel's tags ranking algorithm.
 """
 
 import pickle
+import pprint
 import subprocess
 import sys
+from pathlib import Path
 
 import pypi_simple.errors
-from packaging.tags import Tag, sys_tags
+from packaging.requirements import Requirement
+from packaging.tags import Tag
 from packaging.utils import parse_wheel_filename
-from pypi_simple import NoMetadataError, PyPISimple
+from packaging.version import Version
+from pypi_simple import DistributionPackage, NoMetadataError, PyPISimple
 
 
 def foreign_tags(python_exe):
@@ -18,17 +22,26 @@ def foreign_tags(python_exe):
 
     The in-process packaging.tags can also generate these if given information about the other interpreter...
     """
-    result = subprocess.run([python_exe, "-c", "import sys,pickle,packaging.tags;sys.stdout.buffer.write(pickle.dumps((*packaging.tags.sys_tags(),)))"], capture_output=True, check=True)
+    result = subprocess.run(
+        [
+            python_exe,
+            "-c",
+            "import sys,pickle,packaging.tags;sys.stdout.buffer.write(pickle.dumps((*packaging.tags.sys_tags(),)))",
+        ],
+        capture_output=True,
+        check=True,
+    )
     tags = pickle.loads(result.stdout)
     return tags
 
 
-def best_wheel_for(pname, tags: list[Tag]):
+def fetch_package_page(pname, tags: list[Tag]):
     """
-    Find best ranked compatible wheel by tags for each available version.
+    Return all packages for a distribution name.
     """
+
     class package:
-        name=pname
+        name = pname
 
     with PyPISimple() as client:
         try:
@@ -37,50 +50,48 @@ def best_wheel_for(pname, tags: list[Tag]):
             print(package.name, e)
             return
 
-        by_version = {}
-        for pkg in page.packages:
-            by_version[pkg.version] = by_version.get(pkg.version, []) + [pkg]
+        return page.packages
 
-        # find newest version matching requested spec
 
-        # find all wheels
+def rank_packages(packages: list[DistributionPackage]):
+    by_version: dict[str | None, list[DistributionPackage]] = {}
+    for pkg in packages:
+        by_version[pkg.version] = by_version.get(pkg.version, []) + [pkg]
 
-        # find best wheel matching spec and tags
+    # XXX pass in "pagage > 4" or "package == 1.2" specifier, filter
+    by_version_sorted = sorted(((Version(v), v) for v in by_version if v), reverse=True)
 
-        # for pkg in page.packages:
-        #     if pkg.version != package.version:
-        #         print(pkg.version, "!=", package.version)
-        #         return
-        #     if pkg.has_metadata is not None:
-        #         print("Has metadata?", pkg.has_metadata)
-        #         try:
-        #             src = client.get_package_metadata(pkg)
-        #         except NoMetadataError:
-        #             print(f"{pkg.filename}: No metadata available")
-        #         else:
-        #             print(pkg)
-        #             # avoid unique errors
-        #             session.execute(
-        #                 pypi_metadata.delete().where(
-        #                     pypi_metadata.c.filename == pkg.filename
-        #                 )
-        #             )
-        #             session.execute(
-        #                 pypi_metadata.insert().values(
-        #                     filename=pkg.filename,
-        #                     name=pkg.project,
-        #                     version=pkg.version,
-        #                     metadata=src,
-        #                 )
-        #             )
-        #     else:
-        #         print(f"{pkg.filename}: No metadata available")
-        #     print()
+    best_supported_by_version: dict[tuple[Version, int], DistributionPackage] = {}
+    for version, v in by_version_sorted:
+        for pkg in by_version[v]:
+            if pkg.package_type == "wheel":
+                wheel_name, wheel_version, wheel_build, wheel_tags = (
+                    parse_wheel_filename(pkg.filename)
+                )
+                # they don't seem to == even if str(t1) == str(t2); pickle problem or ??
+                wheel_tags = {str(tag) for tag in wheel_tags}
+                for rank, tag in enumerate(tags):
+                    if str(tag) in wheel_tags:
+                        # Assign rank to all supported wheels with same version
+                        best_supported_by_version[(version, -rank)] = pkg
 
-    return by_version
+    # "some version in SpecifierSet"
+
+    # find newest version matching requested spec
+
+    # find all wheels
+
+    # find best wheel matching spec and tags
+
+    return best_supported_by_version
 
 
 if __name__ == "__main__":
     python_exe = sys.argv[1]
     tags = foreign_tags(python_exe)
-    best_wheel_for("sqlalchemy", tags)
+    if False:
+        packages = fetch_package_page("sqlalchemy", tags)
+    else:
+        packages = pickle.loads(Path("packages.pickle").read_bytes())
+
+    pprint.pprint(rank_packages(packages))
