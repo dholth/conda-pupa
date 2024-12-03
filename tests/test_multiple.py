@@ -11,6 +11,7 @@ import subprocess
 import sys
 
 from conda.base.context import context
+from conda.models.channel import Channel
 from conda.models.match_spec import MatchSpec
 from conda_libmamba_solver.solver import LibMambaSolver
 
@@ -184,8 +185,9 @@ def test_integrated_solver():
     prefix = pathlib.Path(envs["envs_dirs"][0], TARGET_ENV)
     assert prefix.exists()
 
-    channels = context.channels
-    print(channels)
+    local_channel = Channel(REPO.as_uri())
+
+    channels = [local_channel, *context.channels]
 
     solver = LibMambaSolver(
         str(prefix),
@@ -198,3 +200,27 @@ def test_integrated_solver():
     txn = solver.solve_for_diff()
 
     print(txn)
+
+    # may override this fn; persist index, reload channels.
+
+    # @time_recorder(module_name=__name__)
+    # def _collect_all_metadata(
+    #     self,
+    #     channels: Iterable[Channel],
+    #     conda_build_channels: Iterable[Channel],
+    #     subdirs: Iterable[str],
+    #     in_state: SolverInputState,
+    # ) -> LibMambaIndexHelper:
+    #     index = LibMambaIndexHelper(
+    #         channels=[*conda_build_channels, *channels],
+    #         subdirs=subdirs,
+    #         repodata_fn=self._repodata_fn,
+    #         installed_records=(
+    #             *in_state.installed.values(),
+    #             *in_state.virtual.values(),
+    #         ),
+    #         pkgs_dirs=context.pkgs_dirs if context.offline else (),
+    #     )
+    #     for channel in conda_build_channels:
+    #         index.reload_channel(channel)
+    #     return index
