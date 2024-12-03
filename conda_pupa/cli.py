@@ -18,5 +18,12 @@ import click
     required=False,
     help="Install local directory as editable package.",
 )
-def cli(channel, editable):
-    print(channel, editable)
+@click.option(
+    "-p",
+    "--prefix",
+    help="Full path to environment location (i.e. prefix).",
+    required=False,
+)
+@click.option("-n", "--name", help="Name of environment.", required=False)
+def cli(channel, editable, prefix, name):
+    print(channel, editable, prefix, name)
