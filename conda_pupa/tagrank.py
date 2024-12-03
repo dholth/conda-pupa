@@ -89,9 +89,10 @@ def rank_packages(packages: list[DistributionPackage]):
 if __name__ == "__main__":
     python_exe = sys.argv[1]
     tags = foreign_tags(python_exe)
-    if False:
-        packages = fetch_package_page("sqlalchemy", tags)
-    else:
-        packages = pickle.loads(Path("packages.pickle").read_bytes())
 
-    pprint.pprint(rank_packages(packages))
+    # if False:
+    #     packages = fetch_package_page("sqlalchemy", tags)
+    # else:
+    #     packages = pickle.loads(Path("packages.pickle").read_bytes())
+
+    # pprint.pprint(rank_packages(packages))

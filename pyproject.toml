@@ -28,6 +28,7 @@ dependencies = [
   "conda-package-streaming >=0.11",
   "installer >=0.7",                # conda name is python-installer
   "packaging >=24",
+  "unearth>=0.17.2",
 ]
 
 [project.optional-dependencies]
