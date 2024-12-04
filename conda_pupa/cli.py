@@ -6,6 +6,7 @@ from pathlib import Path
 
 import click
 
+import conda_pupa.build
 import conda_pupa.convert_tree
 import conda_pupa.editable
 
@@ -29,6 +30,12 @@ import conda_pupa.editable
     help="Build named path as editable package; install to link checkout to environment.",
 )
 @click.option(
+    "-b",
+    "--build",
+    required=False,
+    help="Build named path as wheel converted to conda.",
+)
+@click.option(
     "-p",
     "--prefix",
     help="Full path to environment location (i.e. prefix).",
@@ -39,11 +46,17 @@ import conda_pupa.editable
     nargs=-1,
 )
 @click.option("-n", "--name", help="Name of environment.", required=False)
-def cli(channel, editable, prefix, name, override_channels, package_spec):
+def cli(channel, editable, build, prefix, name, override_channels, package_spec):
     print(channel, editable, prefix, name)
+
+    if editable and build:
+        raise click.BadOptionUsage("build", "build and editable are mutually exclusive")
 
     if editable:
         conda_pupa.editable.editable(editable)
+
+    elif build:
+        conda_pupa.build.pypa_to_conda(build, distribution="wheel")
 
     else:
         if prefix:
