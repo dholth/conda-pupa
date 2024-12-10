@@ -146,6 +146,7 @@ def build_conda(
 
     (build_path / "info").mkdir()
     (build_path / "info" / "index.json").write_text(json_dumps(record))
+    (build_path / "info" /"about.json").write_text(json_dumps(metadata.about))
 
     # used especially for console_scripts
     if link_json := metadata.link_json():
