@@ -49,7 +49,6 @@ import conda_pupa.editable
 )
 @click.option("-n", "--name", help="Name of environment.", required=False)
 def cli(channel, editable, build, prefix, name, override_channels, package_spec):
-
     if editable and build:
         raise click.BadOptionUsage("build", "build and editable are mutually exclusive")
 
