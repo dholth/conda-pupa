@@ -232,7 +232,7 @@ def conda_to_requires(matchspec: MatchSpec):
         except InvalidRequirement:
             # attempt to catch 'httpcore 1.*' style conda requirement
             best_format = "==".join(matchspec.spec.split())
-            return Requirement(matchspec.spec.replace(name, pypi_name))
+            return Requirement(best_format.replace(name, pypi_name))
 
 
 def pypi_to_conda_name(pypi_name: str):
