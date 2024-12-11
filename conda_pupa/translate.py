@@ -10,10 +10,10 @@ import sys
 import time
 from importlib.metadata import Distribution, PackageMetadata, PathDistribution
 from pathlib import Path
-from conda.models.match_spec import MatchSpec
 from typing import Any
 
-from packaging.requirements import Requirement
+from conda.models.match_spec import MatchSpec
+from packaging.requirements import InvalidRequirement, Requirement
 from packaging.utils import canonicalize_name
 
 log = logging.getLogger(__name__)
@@ -227,8 +227,12 @@ def conda_to_requires(matchspec: MatchSpec):
         best_format = str(matchspec)
         if "version=" in best_format:
             best_format = matchspec.spec
-        # XXX ugly no-setter-on-MatchSpec.name
-        return Requirement(best_format.replace(name, pypi_name))
+        try:
+            return Requirement(best_format.replace(name, pypi_name))
+        except InvalidRequirement:
+            # attempt to catch 'httpcore 1.*' style conda requirement
+            best_format = "==".join(matchspec.spec.split())
+            return Requirement(matchspec.spec.replace(name, pypi_name))
 
 
 def pypi_to_conda_name(pypi_name: str):
