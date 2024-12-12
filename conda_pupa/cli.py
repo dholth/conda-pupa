@@ -8,7 +8,6 @@ import click
 
 import conda_pupa.build
 import conda_pupa.convert_tree
-import conda_pupa.editable
 
 
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
@@ -71,7 +70,7 @@ def cli(
     if editable:
         print(
             "Editable at ",
-            conda_pupa.editable.pypa_to_conda(
+            conda_pupa.build.pypa_to_conda(
                 editable, distribution="editable", output_path=output_folder
             ),
         )
