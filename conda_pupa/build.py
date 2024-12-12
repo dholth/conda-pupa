@@ -199,23 +199,29 @@ def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
         writer.writerows(record_rows)
 
 
-def pypa_to_conda(project, distribution="editable"):
+def pypa_to_conda(project, distribution="editable", output_path: Path | None = None):
     project = Path(project)
-    with tempfile.TemporaryDirectory(prefix="conda", delete=False) as tmp_path:
-        tmp_path = Path(tmp_path)
-        output_path = Path(project / "build")
+    if not output_path:
+        output_path = project / "build"
         if not output_path.exists():
             output_path.mkdir()
+
+    with tempfile.TemporaryDirectory(prefix="conda", delete=False) as tmp_path:
+        tmp_path = Path(tmp_path)
+
         normal_wheel = build_pypa(
             Path(project), tmp_path, sys.executable, distribution=distribution
         )
+
         build_path = tmp_path / "build"
+
         package_conda = build_conda(
             normal_wheel,
             build_path,
-            tmp_path,
+            output_path or tmp_path,
             sys.executable,
             project_path=project,
             is_editable=True,
         )
-        print("Conda at", package_conda)
+
+    return package_conda
