@@ -56,6 +56,13 @@ def test_conda_deps_to_pypi():
             except InvalidRequirement:
                 if len(conda_requires.split()) != 3:
                     # most of these are specs with a build number "h5py 3.11.0 py310hbe37b52_0"
+
+                    # packaging.requirements.Requirement does not allow _ as the
+                    # start of a package, used in conda virtual packages
+                    # '__win', '__linux' and in some metapacages
+
+                    # Doesn't like version numbers ending in arbitrary letters like jpeg >=9e,<10a
+                    # (Some of those conda packages won't depend on Python; omit from pypa requirements)
                     print(
                         f"Could not convert {conda_requires} from {row.index_json['name']} to pypi form"
                     )

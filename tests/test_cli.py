@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import click.exceptions
 import pytest
 from click.testing import CliRunner
 
+import conda_pupa.plugin
 from conda_pupa.cli import cli
 
 
@@ -54,3 +56,8 @@ def test_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     assert mock.args[0] == tmp_path
     assert not mock.kwargs["override_channels"]
     assert mock.package_spec == ("package==4",)
+
+
+def test_cli_plugin(monkeypatch):
+    with pytest.raises(click.exceptions.BadOptionUsage):
+        conda_pupa.plugin.command(["-e=.", "-b=."], standalone_mode=False)
