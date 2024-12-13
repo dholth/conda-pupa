@@ -77,3 +77,9 @@ def test_filter_coverage():
         name = ".git"
 
     assert filter(tarinfo) is None  # type: ignore
+
+
+def test_create_build_dir(tmp_path):
+    # XXX should "create default output_path" logic live in pypa_to_conda?
+    with pytest.raises(build.BuildException):
+        pypa_to_conda(tmp_path)

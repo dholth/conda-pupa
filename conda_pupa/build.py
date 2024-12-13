@@ -201,6 +201,8 @@ def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
 
 def pypa_to_conda(project, distribution="editable", output_path: Path | None = None):
     project = Path(project)
+
+    # Should this logic be moved to the caller?
     if not output_path:
         output_path = project / "build"
         if not output_path.exists():
@@ -221,7 +223,7 @@ def pypa_to_conda(project, distribution="editable", output_path: Path | None = N
             output_path or tmp_path,
             sys.executable,
             project_path=project,
-            is_editable=True,
+            is_editable=distribution == "editable",
         )
 
     return package_conda
