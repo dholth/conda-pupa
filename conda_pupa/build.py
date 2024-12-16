@@ -151,7 +151,8 @@ def build_conda(
     if link_json := metadata.link_json():
         (build_path / "info" / "link.json").write_text(json_dumps(link_json))
 
-    # Allow pip to list us as editable
+    # Allow pip to list us as editable or show the path to our project.
+    # XXX leaks path
     if project_path:
         direct_url = project_path.absolute().as_uri()
         direct_url_path = dist_info / "direct_url.json"
