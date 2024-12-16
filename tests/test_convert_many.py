@@ -2,16 +2,21 @@
 Run metadata, dependency translation on a collection of packages; see which fail, succeed.
 """
 
+import pytest
 from conda.models.match_spec import MatchSpec
 from packaging.requirements import InvalidRequirement
 
 from conda_pupa.translate import CondaMetadata, FileDistribution, conda_to_requires
 
 # XXX different pythonpath under pytest
+skip = False
 try:
     import corpus
 except ImportError:
-    from . import corpus
+    try:
+        from . import corpus
+    except ImportError:
+        skip = True
 
 # Example package we can't convert, if we try to "pip install" the same.
 
@@ -22,6 +27,7 @@ except ImportError:
 # Please use pip<24.1 if you need to use this version.
 
 
+@pytest.mark.skipif(skip, "corpus not available")
 def test_many_from_distribution():
     session = corpus.create_session()
     names = set()
@@ -43,6 +49,7 @@ def test_many_from_distribution():
     )
 
 
+@pytest.mark.skipif(skip, "corpus not available")
 def test_conda_deps_to_pypi():
     session = corpus.create_session()
     failed = []
