@@ -27,7 +27,7 @@ except ImportError:
 # Please use pip<24.1 if you need to use this version.
 
 
-@pytest.mark.skipif(skip, "corpus not available")
+@pytest.mark.skipif(skip, reason="corpus not available")
 def test_many_from_distribution():
     session = corpus.create_session()
     names = set()
@@ -49,7 +49,7 @@ def test_many_from_distribution():
     )
 
 
-@pytest.mark.skipif(skip, "corpus not available")
+@pytest.mark.skipif(skip, reason="corpus not available")
 def test_conda_deps_to_pypi():
     session = corpus.create_session()
     failed = []
