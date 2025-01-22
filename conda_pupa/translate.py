@@ -251,20 +251,22 @@ def pypi_to_conda_name(pypi_name: str):
 _to_pypi_name_map = {}
 
 
-def conda_to_pypi_name(conda_name: str):
+def conda_to_pypi_name(name: str):
     if not _to_pypi_name_map:
         for value in grayskull_pypi_mapping.values():
             conda_name = value["conda_name"]
             # XXX sometimes conda:pypi is n:1
-            if conda_name in _to_pypi_name_map:
-                print("one to many", conda_name, value)
+            if name in _to_pypi_name_map:
+                print("one to many", name, value)
                 # assert conda_name not in _to_pypi_name_map
             _to_pypi_name_map[conda_name] = value
+        return conda_to_pypi_name(name)
 
-    found = _to_pypi_name_map.get(conda_name)
-    if found:
-        return found["pypi_name"]
-    return conda_name
+    else:
+        found = _to_pypi_name_map.get(name)
+        if found:
+            return found["pypi_name"]
+        return name
 
 
 if __name__ == "__main__":  # pragma: no cover
