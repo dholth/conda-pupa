@@ -2,11 +2,12 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from conda.cli.main import main_subshell
+from conda.core.prefix_data import PrefixData
 from packaging.requirements import InvalidRequirement
 
 import build
-from conda_pupa.build import ensure_requirements, filter
-from conda_pupa.build import pypa_to_conda
+from conda_pupa.build import ensure_requirements, filter, pypa_to_conda
 
 
 def test_editable(tmp_path):
@@ -83,3 +84,37 @@ def test_create_build_dir(tmp_path):
     # XXX should "create default output_path" logic live in pypa_to_conda?
     with pytest.raises(build.BuildException):
         pypa_to_conda(tmp_path)
+
+
+## Test pupa installed in different environment than editable package / activated environment...
+
+
+def test_build_in_env(tmp_path):
+    main_subshell(
+        "create",
+        "--prefix",
+        str(tmp_path / "env"),
+        "-y",
+        "python",
+    )
+
+    prefix = str(tmp_path / "env")
+
+    # error, or click doesn't integrate that well with conda's plugins?
+    with pytest.raises(SystemExit):
+        main_subshell(
+            "pupa",
+            "--prefix",
+            prefix,
+            "--output-folder",
+            str(tmp_path),
+            "-e",
+            str(Path(__file__).parent / "packages" / "has-build-dep"),
+        )
+
+    installed = [
+        record.name
+        for record in PrefixData(prefix, pip_interop_enabled=True).iter_records()
+    ]
+
+    assert "sphinxcontrib" in installed
