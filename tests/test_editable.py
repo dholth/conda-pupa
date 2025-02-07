@@ -13,11 +13,13 @@ from conda_pupa.dependencies import ensure_requirements
 
 
 def test_editable(tmp_path):
+    # Other tests can change context.target_prefix by calling "conda install
+    # --prefix", so we use default_prefix; could alternatively reset context.
     pypa_to_conda(
         Path(__file__).parents[1],
         output_path=tmp_path,
         distribution="editable",
-        prefix=Path(context.target_prefix),
+        prefix=Path(context.default_prefix),
     )
 
 
@@ -62,7 +64,7 @@ def test_build_wheel(package, package_path, tmp_path):
             package_path / package,
             output_path=tmp_path,
             distribution="wheel",
-            prefix=Path(context.target_prefix),
+            prefix=Path(context.default_prefix),
         )
     except (
         build.BuildException,
@@ -91,7 +93,7 @@ def test_filter_coverage():
 def test_create_build_dir(tmp_path):
     # XXX should "create default output_path" logic live in pypa_to_conda?
     with pytest.raises(build.BuildException):
-        pypa_to_conda(tmp_path, prefix=Path(context.target_prefix))
+        pypa_to_conda(tmp_path, prefix=Path(context.default_prefix))
 
 
 ## Test pupa installed in different environment than editable package / activated environment...
