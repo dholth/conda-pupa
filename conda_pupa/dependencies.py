@@ -6,6 +6,7 @@ Python's in a subprocess.
 import importlib.resources
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Iterable
 
@@ -20,18 +21,24 @@ def check_dependencies(requirements: Iterable[str], prefix: Path):
     dependency_getter = importlib.resources.read_text(
         "conda_pupa", "dependencies_subprocess.py"
     )
-    result = subprocess.run(
-        [
-            python_executable,
-            "-",
-            "-r",
-            json.dumps(sorted(requirements)),
-        ],
-        encoding="utf-8",
-        input=dependency_getter,
-        capture_output=True,
-    )
-    missing = json.loads(result.stdout)
+    try:
+        result = subprocess.run(
+            [
+                python_executable,
+                "-",
+                "-r",
+                json.dumps(sorted(requirements)),
+            ],
+            encoding="utf-8",
+            input=dependency_getter,
+            capture_output=True,
+            check=True,
+        )
+        missing = json.loads(result.stdout)
+    except subprocess.SubprocessError as e:
+        # XXX what exception to raise?
+        print(e, file=sys.stderr)
+        return []
 
     return missing
 
