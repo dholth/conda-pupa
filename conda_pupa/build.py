@@ -20,7 +20,7 @@ from conda_package_streaming.create import conda_builder
 
 from build import ProjectBuilder, check_dependency
 
-from . import installer
+from . import installer, paths
 from .conda_build_utils import PathType, sha256_checksum
 from .translate import CondaMetadata, requires_to_conda
 
@@ -97,12 +97,17 @@ def ensure_requirements(requirements):
 
 
 def build_pypa(
-    path: Path, output_path, python_executable: str, distribution="editable"
+    path: Path,
+    output_path,
+    prefix: Path,
+    distribution="editable",
 ):
     """
     Args:
         distribution: "editable" or "wheel"
     """
+    python_executable = str(paths.get_python_executable(prefix))
+
     builder = ProjectBuilder(path, python_executable=python_executable)
 
     build_system_requires = builder.build_system_requires
@@ -200,7 +205,12 @@ def update_RECORD(record_path: Path, base_path: Path, changed_path: Path):
         writer.writerows(record_rows)
 
 
-def pypa_to_conda(project, distribution="editable", output_path: Path | None = None):
+def pypa_to_conda(
+    project,
+    prefix: Path,
+    distribution="editable",
+    output_path: Path | None = None,
+):
     project = Path(project)
 
     # Should this logic be moved to the caller?
@@ -213,7 +223,7 @@ def pypa_to_conda(project, distribution="editable", output_path: Path | None = N
         tmp_path = Path(tmp_path)
 
         normal_wheel = build_pypa(
-            Path(project), tmp_path, sys.executable, distribution=distribution
+            Path(project), tmp_path, prefix=prefix, distribution=distribution
         )
 
         build_path = tmp_path / "build"

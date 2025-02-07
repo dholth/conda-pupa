@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from conda.base.context import context
 from conda.cli.main import main_subshell
 from conda.core.prefix_data import PrefixData
 from packaging.requirements import InvalidRequirement
@@ -12,7 +13,10 @@ from conda_pupa.build import ensure_requirements, filter, pypa_to_conda
 
 def test_editable(tmp_path):
     pypa_to_conda(
-        Path(__file__).parents[1], output_path=tmp_path, distribution="editable"
+        Path(__file__).parents[1],
+        output_path=tmp_path,
+        distribution="editable",
+        prefix=Path(context.target_prefix),
     )
 
 
@@ -54,7 +58,10 @@ def test_build_wheel(package, package_path, tmp_path):
         )
     try:
         pypa_to_conda(
-            package_path / package, output_path=tmp_path, distribution="wheel"
+            package_path / package,
+            output_path=tmp_path,
+            distribution="wheel",
+            prefix=Path(context.target_prefix),
         )
     except (
         build.BuildException,
@@ -83,7 +90,7 @@ def test_filter_coverage():
 def test_create_build_dir(tmp_path):
     # XXX should "create default output_path" logic live in pypa_to_conda?
     with pytest.raises(build.BuildException):
-        pypa_to_conda(tmp_path)
+        pypa_to_conda(tmp_path, prefix=Path(context.target_prefix))
 
 
 ## Test pupa installed in different environment than editable package / activated environment...
