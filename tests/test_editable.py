@@ -1,3 +1,4 @@
+import json
 import subprocess
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from conda.core.prefix_data import PrefixData
 from packaging.requirements import InvalidRequirement
 
 import build
+import conda_pupa.dependencies_subprocess
 from conda_pupa.build import filter, pypa_to_conda
 from conda_pupa.dependencies import ensure_requirements
 
@@ -129,3 +131,16 @@ def test_build_in_env(tmp_path):
     ]
 
     assert "sphinxcontrib" in installed
+
+
+def test_dependencies_subprocess():
+    """
+    Normally called in a way that doesn't measure coverage.
+    """
+    dependencies = ["xyzzy", "conda"]
+    missing_dependencies = conda_pupa.dependencies_subprocess.main(
+        ["-", "-r", json.dumps(dependencies)]
+    )
+    # A list per checked dependency, if that dependency or its dependencies are
+    # missing.
+    assert json.loads(missing_dependencies) == [["xyzzy"]]

@@ -213,7 +213,7 @@ def pypa_to_conda(
 
     try:
         tmp_manager = tempfile.TemporaryDirectory(prefix="conda", delete=False)
-    except TypeError:
+    except TypeError:  # pragma: no cover
         # < Python 3.12 but output_path ought to exist
         tmp_manager = tempfile.TemporaryDirectory(prefix="conda")
 

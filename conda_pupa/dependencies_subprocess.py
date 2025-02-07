@@ -16,9 +16,13 @@ def check_dependencies(build_system_requires):
     return missing
 
 
-if __name__ == "__main__":
-    name, flag, requirements = sys.argv
+def main(argv):
+    name, flag, requirements = argv
     assert flag == "-r"
     requirements = json.loads(requirements)
     stuff = check_dependencies(requirements)
-    print(json.dumps(stuff))
+    return json.dumps(stuff)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    print(main(sys.argv))
