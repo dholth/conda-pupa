@@ -15,14 +15,13 @@ import tempfile
 from importlib.metadata import PathDistribution
 from pathlib import Path
 
-from conda.cli.main import main_subshell
 from conda_package_streaming.create import conda_builder
 
-from build import ProjectBuilder, check_dependency
+from build import ProjectBuilder
 
-from . import installer, paths
+from . import dependencies, installer, paths
 from .conda_build_utils import PathType, sha256_checksum
-from .translate import CondaMetadata, requires_to_conda
+from .translate import CondaMetadata
 
 
 def filter(tarinfo):
@@ -89,13 +88,6 @@ def flatten(iterable):
     return [*itertools.chain(*iterable)]
 
 
-def ensure_requirements(requirements):
-    if requirements:
-        conda_requirements, _ = requires_to_conda(requirements)
-        # -y may be appropriate during tests only
-        main_subshell("install", "-y", *conda_requirements)
-
-
 def build_pypa(
     path: Path,
     output_path,
@@ -111,14 +103,14 @@ def build_pypa(
     builder = ProjectBuilder(path, python_executable=python_executable)
 
     build_system_requires = builder.build_system_requires
-    missing = {u for d in build_system_requires for u in check_dependency(d)}
+    missing = dependencies.check_dependencies(build_system_requires, prefix=prefix)
     print("Installing requirements for build system:", missing)
     # does flatten() work for a deeper dependency chain?
-    ensure_requirements(flatten(missing))
+    dependencies.ensure_requirements(flatten(missing), prefix=prefix)
 
     requirements = builder.check_dependencies(distribution)
     print(f"Additional requirements for {distribution}:", requirements)
-    ensure_requirements(flatten(requirements))
+    dependencies.ensure_requirements(flatten(requirements), prefix=prefix)
 
     editable_file = builder.build(distribution, output_path)
     print("The wheel is at", editable_file)

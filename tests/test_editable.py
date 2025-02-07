@@ -8,7 +8,8 @@ from conda.core.prefix_data import PrefixData
 from packaging.requirements import InvalidRequirement
 
 import build
-from conda_pupa.build import ensure_requirements, filter, pypa_to_conda
+from conda_pupa.build import filter, pypa_to_conda
+from conda_pupa.dependencies import ensure_requirements
 
 
 def test_editable(tmp_path):
@@ -74,10 +75,10 @@ def test_build_wheel(package, package_path, tmp_path):
 
 
 def test_ensure_requirements(mocker):
-    mock = mocker.patch("conda_pupa.build.main_subshell")
-    ensure_requirements(["flit_core"])
+    mock = mocker.patch("conda_pupa.dependencies.main_subshell")
+    ensure_requirements(["flit_core"], prefix=Path())
     # normalizes/converts the underscore flit_core->flit-core
-    assert mock.call_args.args == ("install", "-y", "flit-core")
+    assert mock.call_args.args == ("install", "--prefix", ".", "-y", "flit-core")
 
 
 def test_filter_coverage():
@@ -103,6 +104,7 @@ def test_build_in_env(tmp_path):
         str(tmp_path / "env"),
         "-y",
         "python",
+        "python-build",
     )
 
     prefix = str(tmp_path / "env")
