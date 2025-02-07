@@ -219,7 +219,13 @@ def pypa_to_conda(
         if not output_path.exists():
             output_path.mkdir()
 
-    with tempfile.TemporaryDirectory(prefix="conda", delete=False) as tmp_path:
+    try:
+        tmp_manager = tempfile.TemporaryDirectory(prefix="conda", delete=False)
+    except TypeError:
+        # < Python 3.12 but output_path ought to exist
+        tmp_manager = tempfile.TemporaryDirectory(prefix="conda")
+
+    with tmp_manager as tmp_path:
         tmp_path = Path(tmp_path)
 
         normal_wheel = build_pypa(
