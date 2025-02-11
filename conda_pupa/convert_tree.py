@@ -94,7 +94,9 @@ class ConvertTree:
             converted = set()
             fetched_packages = set()
             missing_packages = set()
-            while len(fetched_packages) < max_attempts:
+            attempts = 0
+            while len(fetched_packages) < max_attempts and attempts < max_attempts:
+                attempts += 1
                 try:
                     changes = solver.solve_for_diff()
                     break
@@ -103,6 +105,7 @@ class ConvertTree:
                     print(missing_packages)
                 except LibMambaUnsatisfiableError as e:
                     # parse message
+                    print("Unsatisfiable", e)
                     missing_packages.update(set(parse_libmamba_error(e.message)))
 
                 for package in sorted(missing_packages - fetched_packages):
