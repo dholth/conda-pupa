@@ -23,7 +23,7 @@ def get_package_finder(prefix: Path):
         raise PupaError(f"Python not found in {prefix}")
     py_ver = tuple(map(int, py_ver.split(".")))
     target_python = TargetPython(py_ver=py_ver)
-    return PackageFinder(target_python=target_python)
+    return PackageFinder(target_python=target_python, only_binary=":all:")
 
 
 def find_package(finder: PackageFinder, package: str):
@@ -46,4 +46,5 @@ def find_and_fetch(finder: PackageFinder, target: Path, package: str):
     if not link:
         raise PupaError(f"No PyPI link for {package}")
     filename = link.url_without_fragment.rsplit("/", 1)[-1]
+    print(f"Fetch {package} as {filename}")
     download(link.url, target / filename)
